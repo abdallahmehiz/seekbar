@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "io.github.abdallahmehiz"
-version = "1.1.1"
+version = "1.0.0-alpha01"
 
 kotlin {
     jvm()
