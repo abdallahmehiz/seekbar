@@ -16,12 +16,21 @@ jobs:
           java-version: 21
       - name: Make ./gradlew Executable
         run: chmod +x ./gradlew
-      - name: Publish to MavenCentral
-        run: ./gradlew publishToMavenCentral --no-configuration-cache
+      - name: Publish Release
         env:
-          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
-          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.SIGNING_KEY_ID }}
-          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
-          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_KEY_CONTENTS }}
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY_BASE64 }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
+          MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+        run: |
+          echo "$SIGNING_KEY" | base64 -d > /tmp/keyring.gpg
+          ./gradlew publishAllPublicationsToMavenCentralRepository \
+            -Psigning.secretKeyRingFile=/tmp/keyring.gpg \
+            -Psigning.password="$SIGNING_PASSWORD" \
+            -Psigning.keyId="$SIGNING_KEY_ID" \
+            -PmavenCentralUsername="$MAVEN_CENTRAL_USERNAME" \
+            -PmavenCentralPassword="$MAVEN_CENTRAL_PASSWORD"
+          rm -f /tmp/keyring.gpg
+
 
